@@ -4,9 +4,12 @@ from datetime import datetime, timedelta, timezone
 import time
 import pytz
 from send_email import send_email
+import json
+from google.oauth2 import service_account
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "serviceAccountKey.json"
-db = firestore.Client()
+creds_dict = json.loads(os.environ["FIREBASE_CREDS_JSON"])
+creds = service_account.Credentials.from_service_account_info(creds_dict)
+db = firestore.Client(credentials=creds)
 
 local_tz = pytz.timezone("Asia/Kolkata")
 
