@@ -1,57 +1,65 @@
 import os
 from google.cloud import firestore
-from datetime import datetime, timedelta,timezone
+from datetime import datetime, timedelta, timezone
 import time
 import pytz
-from send_email import send_email  # you define this
+from send_email import send_email
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "serviceAccountKey.json"
 db = firestore.Client()
+
+local_tz = pytz.timezone("Asia/Kolkata")
+
 def load_last_timestamp():
     try:
         with open("last_checked.txt", "r") as f:
             ts = f.read().strip()
-            return datetime.fromisoformat(ts)
+            naive_dt = datetime.fromisoformat(ts)
+            return local_tz.localize(naive_dt)  # make it aware in local timezone
     except:
-        return datetime.now() - timedelta(minutes=10)
+        return datetime.now(local_tz) - timedelta(minutes=10)
 
 def save_last_timestamp(ts):
     with open("last_checked.txt", "w") as f:
-        f.write(ts.isoformat())
+        f.write(ts.replace(tzinfo=None).isoformat())
 
-def check_new_alerts():
+def check_new_alerts(receiver_email="abarpanda05@gmail.com"):
     last_ts = load_last_timestamp()
     print(f"Checking for alerts since: {last_ts.isoformat()}")
 
     query = db.collection("locations") \
-          .where("timestamp", ">", last_ts) \
+          .where("timestamp", ">", last_ts.astimezone(timezone.utc)) \
           .order_by("timestamp", direction=firestore.Query.DESCENDING) \
           .limit(1) \
           .stream()
-    print(query)
 
     new_ts = last_ts
     for doc in query:
         data = doc.to_dict()
-        print("data=",data)
-        email = "abarpanda05@gmail.com"
-        subject = "Please ignore"
-        message = data.get("timestamp", "No message")
-        print(message)
+        print("data =", data)
 
-        print(f"New alert: {email} - {subject}")
-        send_email(email, subject, str(message))
-
-        # ... inside your loop or query:
+        # Pull timestamp from Firestore
         doc_ts = data.get("timestamp")
+        if not isinstance(doc_ts, datetime):
+            continue
 
-        if isinstance(doc_ts, datetime):
-            # Make doc_ts timezone-aware if it is naive
-            if doc_ts.tzinfo is None:
-                doc_ts = doc_ts.replace(tzinfo=timezone.utc)
+        # Ensure doc_ts is UTC-aware
+        if doc_ts.tzinfo is None:
+            doc_ts = doc_ts.replace(tzinfo=timezone.utc)
 
-            if doc_ts > new_ts:
-                new_ts = doc_ts
+        # Convert doc_ts to local time for comparison and display
+        local_doc_ts = doc_ts.astimezone(local_tz)
+
+        # Use local time for email
+        email = receiver_email
+        subject = "Location update of Amritanshu Barpanda"
+        message = f"Location update at {local_doc_ts.strftime('%Y-%m-%d %H:%M:%S %Z')}"
+        print(f"New alert: {email} - {subject}")
+        send_email(email, subject, message)
+
+        # Compare in local time
+        if local_doc_ts > new_ts:
+            new_ts = local_doc_ts
 
     save_last_timestamp(new_ts)
 
