@@ -1,52 +1,59 @@
-import firebase_admin
-from firebase_admin import credentials, firestore
-import smtplib
-from email.mime.text import MIMEText
-import time
-from dotenv import load_dotenv
 import os
+from google.cloud import firestore
+from datetime import datetime, timedelta,timezone
+import time
+import pytz
+from send_email import send_email  # you define this
 
-load_dotenv()
-
-# === Firebase Admin SDK Init ===
-cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred)
-db = firestore.client()
-
-# === Email Setup ===
-SENDER = "abarpanda05@gmail.com"
-PASSWORD = f"{os.getenv('app_password')}"
-RECEIVER = "subhranshu.1972@gmail.com"
-
-def send_email_alert(data):
-    subject = "📬 New Firebase Entry Alert"
-    body = f"New data added: {data}"
-    
-    msg = MIMEText(body)
-    msg["Subject"] = subject
-    msg["From"] = SENDER
-    msg["To"] = RECEIVER
-    
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "serviceAccountKey.json"
+db = firestore.Client()
+def load_last_timestamp():
     try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(SENDER, PASSWORD)
-            server.send_message(msg)
-        print("✅ Email sent for new entry!")
-    except Exception as e:
-        print("❌ Email error:", e)
+        with open("last_checked.txt", "r") as f:
+            ts = f.read().strip()
+            return datetime.fromisoformat(ts)
+    except:
+        return datetime.now() - timedelta(minutes=10)
 
-# === Firestore Watch ===
-def on_snapshot(col_snapshot, changes, read_time):
-    for change in changes:
-        if change.type.name == "ADDED":
-            print(f"🔍 New document: {change.document.id}")
-            send_email_alert(change.document.to_dict())
+def save_last_timestamp(ts):
+    with open("last_checked.txt", "w") as f:
+        f.write(ts.isoformat())
 
-# === Set Up Listener ===
-col_query = db.collection("alerts")  # Replace with your collection name
-query_watch = col_query.on_snapshot(on_snapshot)
+def check_new_alerts():
+    last_ts = load_last_timestamp()
+    print(f"Checking for alerts since: {last_ts.isoformat()}")
 
-# Keep script running
-print("👂 Listening for new Firestore entries...")
-while True:
-    time.sleep(60)
+    query = db.collection("locations") \
+          .where("timestamp", ">", last_ts) \
+          .order_by("timestamp", direction=firestore.Query.DESCENDING) \
+          .limit(1) \
+          .stream()
+    print(query)
+
+    new_ts = last_ts
+    for doc in query:
+        data = doc.to_dict()
+        print("data=",data)
+        email = "abarpanda05@gmail.com"
+        subject = "Please ignore"
+        message = data.get("timestamp", "No message")
+        print(message)
+
+        print(f"New alert: {email} - {subject}")
+        send_email(email, subject, str(message))
+
+        # ... inside your loop or query:
+        doc_ts = data.get("timestamp")
+
+        if isinstance(doc_ts, datetime):
+            # Make doc_ts timezone-aware if it is naive
+            if doc_ts.tzinfo is None:
+                doc_ts = doc_ts.replace(tzinfo=timezone.utc)
+
+            if doc_ts > new_ts:
+                new_ts = doc_ts
+
+    save_last_timestamp(new_ts)
+
+if __name__ == "__main__":
+    check_new_alerts()
