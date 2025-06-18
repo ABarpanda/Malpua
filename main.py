@@ -39,7 +39,7 @@ def check_new_alerts(receiver_email="abarpanda05@gmail.com"):
     new_ts = last_ts
     for doc in query:
         data = doc.to_dict()
-        print("data =", data)
+        # print("data =", data)
 
         # Pull timestamp from Firestore
         doc_ts = data.get("timestamp")
@@ -57,7 +57,7 @@ def check_new_alerts(receiver_email="abarpanda05@gmail.com"):
         email = receiver_email
         subject = "Location update of Amritanshu Barpanda"
         time_at_location = data["timestamp"] + timedelta(hours=5,minutes=30)
-        message = f"Hey my location is \n\nLongitude = {data["longitude"]} \nLatitude = {data["latitude"]} \nat {time_at_location.strftime('%Y-%m-%d %H:%M:%S')}"
+        message = f"Hey my location is \n\nLongitude = {data['longitude']} \nLatitude = {data['latitude']} \nat {time_at_location.strftime('%Y-%m-%d %H:%M:%S')}"
         print(f"New alert: {email} - {subject}")
         send_email(email, subject, message)
 
