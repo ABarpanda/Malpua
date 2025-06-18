@@ -53,7 +53,8 @@ def check_new_alerts(receiver_email="abarpanda05@gmail.com"):
         # Use local time for email
         email = receiver_email
         subject = "Location update of Amritanshu Barpanda"
-        message = f"Location update at {local_doc_ts.strftime('%Y-%m-%d %H:%M:%S %Z')}"
+        time_at_location = data["timestamp"] + timedelta(hours=5,minutes=30)
+        message = f"Hey my location is \n\nLongitude = {data["longitude"]} \nLatitude = {data["latitude"]} \nat {time_at_location.strftime('%Y-%m-%d %H:%M:%S')}"
         print(f"New alert: {email} - {subject}")
         send_email(email, subject, message)
 
@@ -64,6 +65,4 @@ def check_new_alerts(receiver_email="abarpanda05@gmail.com"):
     save_last_timestamp(new_ts)
 
 if __name__ == "__main__":
-    while True:
-        check_new_alerts()
-        time.sleep(120)
+    check_new_alerts()
