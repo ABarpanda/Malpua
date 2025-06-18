@@ -64,4 +64,6 @@ def check_new_alerts(receiver_email="abarpanda05@gmail.com"):
     save_last_timestamp(new_ts)
 
 if __name__ == "__main__":
-    check_new_alerts()
+    while True:
+        check_new_alerts()
+        time.sleep(120)
