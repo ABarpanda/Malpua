@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import datetime
+from send_email import send_email
 
 # Optional: import your email function here
 # from send_email import send_email
@@ -19,8 +20,7 @@ def receive_location():
 
     message = f"📍 Location received:\nLatitude: {latitude}\nLongitude: {longitude}\nTime: {timestamp}"
     print(message)
-
-    # Optional: send_email("you@example.com", "New Location", message)
+    send_email("abarpanda05@gmail.com", "New Location", message)
 
     return jsonify({"status": "received"}), 200
 
