@@ -19,8 +19,10 @@ def receive_location():
     timestamp = data.get("timestamp", datetime.datetime.now())
 
     message_novia = f"Hello Novia \nBarida is here :\nLatitude: {latitude}\nLongitude: {longitude}\nTime: {timestamp}"
+    message_self = f"Location sent successfully :\nLatitude: {latitude}\nLongitude: {longitude}\nTime: {timestamp}"
     message_parents = f"Rishu's location update: \nLatitude: {latitude}\nLongitude: {longitude}\nTime: {timestamp}"
     send_email("srutipriyadarshani13@gmail.com", "Barida's location", message_novia)
+    send_email("abarpanda05@gmail.com", "Location sent", message_self)
     send_email("ssekhar72@yahoo.com", "Rishu's location", message_parents)
 
     return jsonify({"status": "received"}), 200
