@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "📡 Flask Location Server is running."
+    return "Flask Location Server is running."
 
 @app.route("/location", methods=["POST"])
 def receive_location():
@@ -18,9 +18,9 @@ def receive_location():
     longitude = data.get("longitude")
     timestamp = data.get("timestamp", datetime.datetime.now())
 
-    message = f"📍 Location received:\nLatitude: {latitude}\nLongitude: {longitude}\nTime: {timestamp}"
-    print(message)
-    send_email("abarpanda05@gmail.com", "New Location", message)
+    message = f"Hello Novia \nYour Barida is here :\nLatitude: {latitude}\nLongitude: {longitude}\nTime: {timestamp}"
+    # print(message)
+    send_email("srutipriyadarshani13@gmail.com", "Barida's location", message)
 
     return jsonify({"status": "received"}), 200
 
