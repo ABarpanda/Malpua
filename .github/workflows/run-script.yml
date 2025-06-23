@@ -2,7 +2,7 @@ name: Run Firestore Poller
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # every 5 minutes
+    - cron: '*/1 * * * *'  # every 5 minutes
   workflow_dispatch:        # allows manual run from GitHub UI
 
 jobs:
