@@ -17,13 +17,14 @@ def receive_location():
     latitude = data.get("latitude")
     longitude = data.get("longitude")
     timestamp = data.get("timestamp", datetime.datetime.now())
+    google_map = f"https://www.google.com/maps?q={latitude},{longitude}"
 
-    message_novia = f"Hello Novia \nBarida is here :\nLatitude: {latitude}\nLongitude: {longitude}\nTime: {timestamp}"
-    message_self = f"Location sent successfully :\nLatitude: {latitude}\nLongitude: {longitude}\nTime: {timestamp}"
-    message_parents = f"Rishu's location update: \nLatitude: {latitude}\nLongitude: {longitude}\nTime: {timestamp}"
+    message_novia = f"Hello Novia \nYour Barida is here :\nLatitude: {latitude}\nLongitude: {longitude}\nTime: {timestamp} \nSee the location - {google_map}"
+    message_self = f"Location sent successfully :\nLatitude: {latitude}\nLongitude: {longitude}\nTime: {timestamp} \nSee the location - {google_map}"
+    message_parents = f"Rishu's location update: \nLatitude: {latitude}\nLongitude: {longitude}\nTime: {timestamp} \nSee the location - {google_map}"
     send_email("srutipriyadarshani13@gmail.com", "Barida's location", message_novia)
     send_email("abarpanda05@gmail.com", "Location sent", message_self)
-    send_email("ssekhar72@yahoo.com", "Rishu's location", message_parents)
+    # send_email("ssekhar72@yahoo.com", "Rishu's location", message_parents)
 
     return jsonify({"status": "received"}), 200
 
